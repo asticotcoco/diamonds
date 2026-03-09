@@ -20,7 +20,7 @@ def load_data(cache = True) -> pd.DataFrame:
     pd.DataFrame
         The diamonds dataset
     """
-
+    print(df_diamonds.head())
     return df_diamonds
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -44,7 +44,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         The cleaned diamonds dataset
     """
 
-    return df
+    return df_diamonds
 
 def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     df_diamonds = df.select_dtypes(include=["category"])
@@ -64,14 +64,14 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-def create_X_y(df: pd.DataFrame) ->tuple[pd.DataFrame, pd.Series]:
-    # cat_pipe = Pipeline(
-    #     [("cat_imp",SimpleImputer(strategy="most_frequent")), 
-    #      ("onehot", OneHotEncoder(dropt="first"), sparsde_output=True)]
-    # )
-    num_cols = df.select_dtypes(include="number").columns.tolist()
-    cat_cols = df.select_dtypes(include="category").columns.tolist()
-    preprocessor = create_preproc()
+def create_X_y(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+    # Split target first so preprocessing columns only reference feature columns.
+    X = df.drop(columns="price")
+    y = df["price"]
+
+    num_cols = X.select_dtypes(include="number").columns.tolist()
+    cat_cols = X.select_dtypes(include=["category", "object"]).columns.tolist()
+    preprocessor = create_preproc(num_cols, cat_cols)
     """
     Create the feature matrix X and target vector y from the diamonds dataset.
 
@@ -85,7 +85,13 @@ def create_X_y(df: pd.DataFrame) ->tuple[pd.DataFrame, pd.Series]:
     (pd.DataFrame, pd.Series)
         The feature matrix X and target vector y
     """
-    return preprocessor
+    X_transform = preprocessor.fit_transform(X)
+    X_transform = pd.DataFrame(
+        X_transform,
+        columns=preprocessor.get_feature_names_out(),
+        index=X.index,
+    )
+    return X_transform, y
     
 
 
@@ -94,4 +100,4 @@ if __name__ == "__main__":
     df = load_data()
     df_clean = clean_data(df)
     df_preprocessed = preprocess_data(df_clean)
-    # X, y = create_X_y(df_preprocessed)
+    X, y = create_X_y(df_preprocessed)

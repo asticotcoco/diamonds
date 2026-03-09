@@ -1,4 +1,5 @@
-from sklearn.base import BaseEstimator, Pipeline
+from sklearn.base import BaseEstimator
+from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
