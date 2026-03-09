@@ -1,12 +1,7 @@
 # Import other necessary libraries here
 import pandas as pd
 import seaborn as sns
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer , make_column_selector
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
-from src.diamonds.model import create_preproc
+from diamonds.model import create_preproc
 
 df_diamonds = sns.load_dataset("diamonds")
 

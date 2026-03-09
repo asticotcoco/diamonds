@@ -1,4 +1,5 @@
-from sklearn.base import BaseEstimator, Pipeline
+from sklearn.base import BaseEstimator
+from sklearn.pipeline import Pipeline
 
 
 def create_model(model_name: str) -> BaseEstimator:
