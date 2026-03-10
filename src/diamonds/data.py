@@ -1,11 +1,16 @@
 # Import other necessary libraries here
+import os
 import pandas as pd
+import loguru
+from diamonds.params import DATA_PATH
 import seaborn as sns
 from diamonds.model import create_preproc
 
+logger = loguru.logger
+
 df_diamonds = sns.load_dataset("diamonds")
 
-def load_data(cache = True) -> pd.DataFrame:
+def load_data() -> pd.DataFrame:
     df_diamonds = sns.load_dataset("diamonds")
     """
     Load the diamonds dataset.
@@ -20,7 +25,15 @@ def load_data(cache = True) -> pd.DataFrame:
     pd.DataFrame
         The diamonds dataset
     """
-    print(df_diamonds.head())
+    logger.info("Loading diamonds dataset...")
+    csv_path = os.path.join(DATA_PATH,"raw", "diamonds.csv")
+    if not os.path.exists(csv_path):
+        logger.info("Caching the diamonds dataset...")
+        df_diamonds = sns.load_dataset("diamonds")
+        df_diamonds.to_csv(csv_path, index=False)
+    else:
+        logger.info("Loading diamonds dataset from cache...")
+        df_diamonds = pd.read_csv(csv_path)
     return df_diamonds
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -61,8 +74,10 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         The preprocessed diamonds dataset
     """
+    preprocessor = create_preproc()
+    df_preprocessed = preprocessor.transform(df)
 
-    return df
+    return df_preprocessed
 
 def create_X_y(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     # Split target first so preprocessing columns only reference feature columns.

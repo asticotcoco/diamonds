@@ -9,8 +9,11 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_absolute_percentage_error
+from diamonds.model import save_model
 import pandas as pd
+import loguru
 
+logger = loguru.logger
 
 def create_model(model_name: str) -> BaseEstimator:
     """
@@ -69,10 +72,41 @@ def create_preproc(num_cols: list[str], cat_cols: list[str]) -> Pipeline:
     return preprocessing
 
 def train_model(model, X_train, y_train):
+    """
+    Train model and save it.
+
+    Parameters
+    ----------
+    model : any
+        The model to train
+    X_train : pd.DataFrame
+        The training data
+    y_train : pd.Series
+        The target variable
+    """
+    loguru.info("Training model...")
     model.fit(X_train, y_train)
-    return model
+    loguru.info("Model trained. Saving...")
+    save_model(model, "model")
 
 def evaluate_model(model, X_test, y_test) -> dict[str, float]:
+    """
+    Evaluate the model on the test set.
+
+    Parameters
+    ----------
+    model : any
+        The model to evaluate
+    X_test : pd.DataFrame
+        The test data
+    y_test : pd.Series
+        The target variable
+
+    Returns
+    -------
+    dict[str, float]
+        The metrics for the model.
+    """
     # NB : mae, mse, r2_score, mape
     # Only print the metrics for now
     y_pred = model.predict(X_test)
@@ -91,6 +125,8 @@ def evaluate_model(model, X_test, y_test) -> dict[str, float]:
 
     for name, value in metrics.items():
         print(f"{name}: {value:.4f}")
+
+    return metrics
 
 def predict(model, X: pd.DataFrame) -> pd.Series:
     """
