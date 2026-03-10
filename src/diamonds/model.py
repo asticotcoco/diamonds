@@ -8,12 +8,18 @@ from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_absolute_percentage_error
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error,
+    r2_score,
+    mean_absolute_percentage_error,
+)
 from diamonds.model import save_model
 import pandas as pd
 import loguru
 
 logger = loguru.logger
+
 
 def create_model(model_name: str) -> BaseEstimator:
     """
@@ -33,9 +39,7 @@ def create_model(model_name: str) -> BaseEstimator:
     models = {
         "ridge": Ridge(alpha=1.0),
         "random_forest": RandomForestRegressor(
-            n_estimators=200,
-            max_depth=10,
-            random_state=42
+            n_estimators=200, max_depth=10, random_state=42
         ),
         "knn": KNeighborsRegressor(n_neighbors=5),
         "linear": LinearRegression(fit_intercept=True),
@@ -46,30 +50,32 @@ def create_model(model_name: str) -> BaseEstimator:
 
     return models[model_name]
 
+
 def create_preproc(num_cols: list[str], cat_cols: list[str]) -> Pipeline:
     """
     Create a preprocessing pipeline.
     """
 
     # pipeline numérique
-    num_pipeline = Pipeline([
-        ("num_imp", KNNImputer(n_neighbors=5)),
-        ("scaler", StandardScaler())
-    ])
+    num_pipeline = Pipeline(
+        [("num_imp", KNNImputer(n_neighbors=5)), ("scaler", StandardScaler())]
+    )
 
     # pipeline catégorique
-    cat_pipeline = Pipeline([
-        ("cat_imp", SimpleImputer(strategy="most_frequent")),
-        ("ohe", OneHotEncoder(drop="first",sparse_output=False))
-    ])
+    cat_pipeline = Pipeline(
+        [
+            ("cat_imp", SimpleImputer(strategy="most_frequent")),
+            ("ohe", OneHotEncoder(drop="first", sparse_output=False)),
+        ]
+    )
 
     # combiner les deux
-    preprocessing = ColumnTransformer([
-        ("num", num_pipeline, num_cols),
-        ("cat", cat_pipeline, cat_cols)
-    ])
+    preprocessing = ColumnTransformer(
+        [("num", num_pipeline, num_cols), ("cat", cat_pipeline, cat_cols)]
+    )
 
     return preprocessing
+
 
 def train_model(model, X_train, y_train):
     """
@@ -88,6 +94,7 @@ def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
     loguru.info("Model trained. Saving...")
     save_model(model, "model")
+
 
 def evaluate_model(model, X_test, y_test) -> dict[str, float]:
     """
@@ -116,17 +123,13 @@ def evaluate_model(model, X_test, y_test) -> dict[str, float]:
     r2 = r2_score(y_test, y_pred)
     mape = mean_absolute_percentage_error(y_test, y_pred)
 
-    metrics = {
-        "mae": mae,
-        "mse": mse,
-        "r2": r2,
-        "mape": mape
-    }
+    metrics = {"mae": mae, "mse": mse, "r2": r2, "mape": mape}
 
     for name, value in metrics.items():
         print(f"{name}: {value:.4f}")
 
     return metrics
+
 
 def predict(model, X: pd.DataFrame) -> pd.Series:
     """
@@ -147,4 +150,3 @@ def predict(model, X: pd.DataFrame) -> pd.Series:
     y_pred = model.predict(X)
 
     return pd.Series(y_pred, index=X.index, name="prediction")
-    

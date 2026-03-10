@@ -8,7 +8,7 @@ def save_model(model: BaseEstimator, name: str):
     """Save a trained model to disk and return its path."""
     model_path = os.path.join(MODEL_PATH, f"{name}.pkl")
     with open(model_path, "wb") as f:
-        pickle.dump(model, f)  
+        pickle.dump(model, f)
 
 
 def load_model(name: str) -> BaseEstimator:

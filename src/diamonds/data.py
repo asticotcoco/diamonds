@@ -10,6 +10,7 @@ logger = loguru.logger
 
 df_diamonds = sns.load_dataset("diamonds")
 
+
 def load_data() -> pd.DataFrame:
     df_diamonds = sns.load_dataset("diamonds")
     """
@@ -26,7 +27,7 @@ def load_data() -> pd.DataFrame:
         The diamonds dataset
     """
     logger.info("Loading diamonds dataset...")
-    csv_path = os.path.join(DATA_PATH,"raw", "diamonds.csv")
+    csv_path = os.path.join(DATA_PATH, "raw", "diamonds.csv")
     if not os.path.exists(csv_path):
         logger.info("Caching the diamonds dataset...")
         df_diamonds = sns.load_dataset("diamonds")
@@ -36,11 +37,14 @@ def load_data() -> pd.DataFrame:
         df_diamonds = pd.read_csv(csv_path)
     return df_diamonds
 
+
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
-    
+
     def keep_not_allow(row):
-        if 0 in row: return  False
+        if 0 in row:
+            return False
         return True
+
     df_diamonds = df[df.apply(keep_not_allow, axis=1)]
     df_diamonds[df_diamonds["x"] == 0]
     """
@@ -59,8 +63,8 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     return df_diamonds
 
+
 def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
-    df_diamonds = df.select_dtypes(include=["category"])
     """
     Preprocess the diamonds dataset.
 
@@ -78,6 +82,7 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     df_preprocessed = preprocessor.transform(df)
 
     return df_preprocessed
+
 
 def create_X_y(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     # Split target first so preprocessing columns only reference feature columns.
@@ -107,8 +112,6 @@ def create_X_y(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
         index=X.index,
     )
     return X_transform, y
-    
-
 
 
 if __name__ == "__main__":
