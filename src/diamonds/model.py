@@ -50,14 +50,14 @@ def create_preproc(num_cols: list[str], cat_cols: list[str]) -> Pipeline:
 
     # pipeline numérique
     num_pipeline = Pipeline([
-        ("imputer", KNNImputer(n_neighbors=5)),
+        ("num_imp", KNNImputer(n_neighbors=5)),
         ("scaler", StandardScaler())
     ])
 
     # pipeline catégorique
     cat_pipeline = Pipeline([
-        ("imputer", SimpleImputer(strategy="most_frequent")),
-        ("encoder", OneHotEncoder(handle_unknown="ignore"))
+        ("cat_imp", SimpleImputer(strategy="most_frequent")),
+        ("ohe", OneHotEncoder(drop="first",sparse_output=False))
     ])
 
     # combiner les deux
