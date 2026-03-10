@@ -14,7 +14,7 @@ from sklearn.metrics import (
     r2_score,
     mean_absolute_percentage_error,
 )
-from diamonds.model import save_model
+from diamonds.registry import save_model
 import pandas as pd
 import loguru
 
@@ -90,10 +90,11 @@ def train_model(model, X_train, y_train):
     y_train : pd.Series
         The target variable
     """
-    loguru.info("Training model...")
+    logger.info("Training model...")
     model.fit(X_train, y_train)
-    loguru.info("Model trained. Saving...")
+    logger.info("Model trained. Saving...")
     save_model(model, "model")
+    return model
 
 
 def evaluate_model(model, X_test, y_test) -> dict[str, float]:

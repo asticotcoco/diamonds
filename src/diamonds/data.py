@@ -78,8 +78,10 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         The preprocessed diamonds dataset
     """
-    preprocessor = create_preproc()
-    df_preprocessed = preprocessor.transform(df)
+    num_cols = df.select_dtypes(include="number").columns.tolist()
+    cat_cols = df.select_dtypes(include=["category", "object"]).columns.tolist()
+    preprocessor = create_preproc(num_cols, cat_cols)
+    df_preprocessed = preprocessor.fit_transform(df)
 
     return df_preprocessed
 
@@ -117,5 +119,4 @@ def create_X_y(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
 if __name__ == "__main__":
     df = load_data()
     df_clean = clean_data(df)
-    df_preprocessed = preprocess_data(df_clean)
-    X, y = create_X_y(df_preprocessed)
+    X, y = create_X_y(df_clean)
