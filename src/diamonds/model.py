@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-import logging
-=======
 import loguru
 import pandas as pd
->>>>>>> 848d30b (clean a bit the code and add CI to check linter when pushing)
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.ensemble import RandomForestRegressor
@@ -20,20 +16,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from diamonds.registry import save_model
-<<<<<<< HEAD
-import pandas as pd
-=======
->>>>>>> 848d30b (clean a bit the code and add CI to check linter when pushing)
 
-try:
-    import loguru
-
-    logger = loguru.logger
-except ModuleNotFoundError:
-    logger = logging.getLogger(__name__)
-    if not logger.handlers:
-        logging.basicConfig(level=logging.INFO)
-
+logger = loguru.logger
 
 def create_model(
     model_name: str, estimators: int = 200, max_depth: int = 10, random_state: int = 42
