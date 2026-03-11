@@ -16,5 +16,7 @@ models/
 .env
 .envrc
 
-.mlartifacts/
-.mlflow.db
+# MLflow
+mlartifacts/
+mlruns/
+mlflow.db
