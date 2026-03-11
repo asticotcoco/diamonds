@@ -1,14 +1,5 @@
 # Import other necessary libraries here
 import os
-<<<<<<< HEAD
-import logging
-import pandas as pd
-from diamonds.params import DATA_PATH
-import seaborn as sns
-from diamonds.model import create_preproc
-from diamonds.registry import save_model, load_model
-=======
->>>>>>> 848d30b (clean a bit the code and add CI to check linter when pushing)
 
 import loguru
 import pandas as pd
@@ -18,17 +9,9 @@ from diamonds.model import create_preproc
 from diamonds.params import DATA_PATH
 from diamonds.registry import load_model, save_model
 
-try:
-    import loguru
-
-    logger = loguru.logger
-except ModuleNotFoundError:
-    logger = logging.getLogger(__name__)
-    if not logger.handlers:
-        logging.basicConfig(level=logging.INFO)
-
 df_diamonds = sns.load_dataset("diamonds")
 
+logger = loguru.logger
 
 def load_data() -> pd.DataFrame:
     df_diamonds = sns.load_dataset("diamonds")
