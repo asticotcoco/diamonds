@@ -10,7 +10,11 @@ from sklearn.metrics import (
 )
 from diamonds.data import load_data
 import random
-import mlflow
+
+try:
+    import mlflow
+except ModuleNotFoundError:
+    mlflow = None
 
 
 def train(
@@ -48,6 +52,12 @@ def autolog_mlflow(
     test_size: float = 0.2,
     random_state: int = 42,
 ):
+    if mlflow is None:
+        raise ModuleNotFoundError(
+            "mlflow is not installed in the active Python interpreter. "
+            "Install mlflow or run train() without experiment tracking."
+        )
+
     # 1. Set the tracking URI to the MLflow server
     mlflow.set_tracking_uri("http://localhost:5000")
     # 2. Set the Experiment name
@@ -87,5 +97,8 @@ def autolog_mlflow(
         return pipeline
 
 if __name__ == "__main__":
-    autolog_mlflow()
-    #train("random_forest")
+    if mlflow is None:
+        print("mlflow not found in this interpreter. Running training without tracking.")
+        train("random_forest")
+    else:
+        autolog_mlflow()

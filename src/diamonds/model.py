@@ -1,3 +1,4 @@
+import logging
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer, make_column_selector
@@ -16,9 +17,15 @@ from sklearn.metrics import (
 )
 from diamonds.registry import save_model
 import pandas as pd
-import loguru
 
-logger = loguru.logger
+try:
+    import loguru
+
+    logger = loguru.logger
+except ModuleNotFoundError:
+    logger = logging.getLogger(__name__)
+    if not logger.handlers:
+        logging.basicConfig(level=logging.INFO)
 
 
 def create_model(

@@ -1,7 +1,7 @@
 # Import other necessary libraries here
 import os
+import logging
 import pandas as pd
-import loguru
 from diamonds.params import DATA_PATH
 import seaborn as sns
 from diamonds.model import create_preproc
@@ -9,7 +9,14 @@ from diamonds.registry import save_model, load_model
 
 from sklearn.model_selection import train_test_split
 
-logger = loguru.logger
+try:
+    import loguru
+
+    logger = loguru.logger
+except ModuleNotFoundError:
+    logger = logging.getLogger(__name__)
+    if not logger.handlers:
+        logging.basicConfig(level=logging.INFO)
 
 df_diamonds = sns.load_dataset("diamonds")
 
