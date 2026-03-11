@@ -1,22 +1,29 @@
+<<<<<<< HEAD
 import logging
+=======
+import loguru
+import pandas as pd
+>>>>>>> 848d30b (clean a bit the code and add CI to check linter when pushing)
 from sklearn.base import BaseEstimator
-from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer, make_column_selector
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.impute import SimpleImputer
-from sklearn.impute import KNNImputer
-from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.impute import KNNImputer, SimpleImputer
+from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.metrics import (
     mean_absolute_error,
+    mean_absolute_percentage_error,
     mean_squared_error,
     r2_score,
-    mean_absolute_percentage_error,
 )
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
 from diamonds.registry import save_model
+<<<<<<< HEAD
 import pandas as pd
+=======
+>>>>>>> 848d30b (clean a bit the code and add CI to check linter when pushing)
 
 try:
     import loguru
@@ -29,11 +36,8 @@ except ModuleNotFoundError:
 
 
 def create_model(
-        model_name: str, 
-        estimators: int = 200, 
-        max_depth: int = 10, 
-        random_state: int = 42
-    ) -> BaseEstimator:
+    model_name: str, estimators: int = 200, max_depth: int = 10, random_state: int = 42
+) -> BaseEstimator:
     """
     Create an untrained model with the best hyperparameters found during tuning.
 
@@ -63,60 +67,28 @@ def create_model(
     return models[model_name]
 
 
-def create_preproc() -> Pipeline:
-    """
-    Create a preprocessing pipeline.
-    """
+def create_preproc():
 
-    # pipeline numérique
     num_pipeline = Pipeline(
-        [("num_imp", KNNImputer(n_neighbors=5)), ("scaler", StandardScaler())]
+        [
+            ("num_imp", KNNImputer()),
+            ("scaler", StandardScaler()),
+        ]
     )
 
-    # pipeline catégorique
     cat_pipeline = Pipeline(
         [
             ("cat_imp", SimpleImputer(strategy="most_frequent")),
-            ("ohe", OneHotEncoder(drop="first", sparse_output=False)),
+            ("ohe", OneHotEncoder(drop="first", handle_unknown="ignore", sparse_output=False)),
         ]
     )
 
     preprocessor = ColumnTransformer(
-    [("numeric",num_pipeline, make_column_selector(dtype_include="number"))
-    ,("categorical", cat_pipeline, make_column_selector(dtype_exclude="number"))
-      ]).set_output(transform="pandas")
-    return preprocessor
-
-
-def create_preproc_with_model() -> ColumnTransformer:
-    numeric_features = ["carat", "depth", "table", "x", "y", "z"]
-    categorical_features = ["cut", "color", "clarity"]
-
-    numeric_pipeline = Pipeline([
-        ("num_imp", KNNImputer()),
-        ("scaler", StandardScaler()),
-    ])
-
-    categorical_pipeline = Pipeline([
-        ("cat_imp", SimpleImputer(strategy="most_frequent")),
-        (
-            "ohe",
-            OneHotEncoder(
-                drop="first",
-                handle_unknown="ignore",
-                sparse_output=False,
-            ),
-        ),
-    ])
-
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("numerical", numeric_pipeline, numeric_features),
-            ("categorical", categorical_pipeline, categorical_features),
-        ],
-        remainder="drop",
-        verbose_feature_names_out=True,
-    )
+        [
+            ("numeric", num_pipeline, make_column_selector(dtype_include="number")),
+            ("categorical", cat_pipeline, make_column_selector(dtype_exclude="number")),
+        ]
+    ).set_output(transform="pandas")
 
     return preprocessor
 
@@ -127,7 +99,7 @@ def create_training_pipeline(
     max_depth: int = 10,
     random_state: int = 42,
 ) -> Pipeline:
-    preprocessor = create_preproc_with_model()
+    preprocessor = create_preproc()
     model = create_model(
         model_name=model_name,
         estimators=estimators,
@@ -135,12 +107,15 @@ def create_training_pipeline(
         random_state=random_state,
     )
 
-    pipeline = Pipeline([
-        ("preprocessor", preprocessor),
-        ("model", model),
-    ])
+    pipeline = Pipeline(
+        [
+            ("preprocessor", preprocessor),
+            ("model", model),
+        ]
+    )
 
     return pipeline
+
 
 def train_model(model, X_train, y_train):
     """
@@ -216,4 +191,3 @@ def predict(model, X: pd.DataFrame) -> pd.Series:
     y_pred = model.predict(X)
 
     return pd.Series(y_pred, index=X.index, name="prediction")
-

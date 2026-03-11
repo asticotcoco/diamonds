@@ -12,14 +12,14 @@ format:
 	@echo "checking format" 
 	poetry run ruff format .
 
-lint-all: lint lint-fix format
+lint-all: lint-fix lint format
 
 .PHONY: start-mlflow stop-mlflow
 MLFLOW_PORT=5000
 MLFLOW_PID_FILE=.mlflow.pid
 
 start-mlflow:
-	mlflow ui --port $(MLFLOW_PORT) & echo $$! > $(MLFLOW_PID_FILE)
+	mlflow ui --backend-store-uri sqlite:///models/mlflow.db -port $(MLFLOW_PORT) & echo $$! > $(MLFLOW_PID_FILE)
 
 stop-mlflow:
 	@if [ -f $(MLFLOW_PID_FILE) ]; then \

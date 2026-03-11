@@ -1,13 +1,22 @@
 # Import other necessary libraries here
 import os
+<<<<<<< HEAD
 import logging
 import pandas as pd
 from diamonds.params import DATA_PATH
 import seaborn as sns
 from diamonds.model import create_preproc
 from diamonds.registry import save_model, load_model
+=======
+>>>>>>> 848d30b (clean a bit the code and add CI to check linter when pushing)
 
-from sklearn.model_selection import train_test_split
+import loguru
+import pandas as pd
+import seaborn as sns
+
+from diamonds.model import create_preproc
+from diamonds.params import DATA_PATH
+from diamonds.registry import load_model, save_model
 
 try:
     import loguru
@@ -63,6 +72,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         The cleaned diamonds dataset
     """
     rows = len(df)
+
     def keep_not_allow(rows):
         if 0 in rows.values:
             return False
@@ -98,7 +108,7 @@ def preprocess_data(df: pd.DataFrame, train: bool = True) -> pd.DataFrame:
         preprocessor = load_model("preprocessor")
 
     df_preprocessed = preprocessor.transform(df)
-    logger.info(f"Preprocessed the diamonds dataset: {df.shape} -> {df_preprocessed.shape}") 
+    logger.info(f"Preprocessed the diamonds dataset: {df.shape} -> {df_preprocessed.shape}")
     return df_preprocessed
 
 

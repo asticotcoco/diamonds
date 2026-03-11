@@ -1,13 +1,12 @@
-import os
-from diamonds.data import (load_data, clean_data, preprocess_data, create_X_y)
-from diamonds.model import create_training_pipeline, create_model, train_model, evaluate_model
-from sklearn.model_selection import train_test_split
+import random
+
+import mlflow
 from sklearn.metrics import (
     mean_absolute_error,
     mean_squared_error,
     r2_score,
-    mean_absolute_percentage_error,
 )
+<<<<<<< HEAD
 from diamonds.data import load_data
 import random
 
@@ -15,13 +14,19 @@ try:
     import mlflow
 except ModuleNotFoundError:
     mlflow = None
+=======
+from sklearn.model_selection import train_test_split
+
+from diamonds.data import clean_data, create_X_y, load_data, preprocess_data
+from diamonds.model import create_model, create_training_pipeline, evaluate_model, train_model
+from diamonds.params import MLFLOW_TRACKING_URI
+>>>>>>> 848d30b (clean a bit the code and add CI to check linter when pushing)
 
 
 def train(
     model_name: str = "baseline",
     test_size: float = 0.2,
     random_state: int = 42,
-
 ) -> None:
     """
     Simple end‑to‑end pipeline:
@@ -37,7 +42,9 @@ def train(
     df_clean = clean_data(df)
     # 2) Model + preprocessing
     X, y = create_X_y(df_clean)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state
+    )
     X_train_preproc = preprocess_data(X_train, train=True)
     X_test_preproc = preprocess_data(X_test, train=False)
 
@@ -59,23 +66,25 @@ def autolog_mlflow(
         )
 
     # 1. Set the tracking URI to the MLflow server
-    mlflow.set_tracking_uri("http://localhost:5000")
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     # 2. Set the Experiment name
     mlflow.set_experiment("Diamonds_experiment")
     mlflow.autolog(log_input_examples=True)
     n_estimators = random.randint(50, 200)  # Randomly choose n_estimators for demonstration
-    depth = random.randint(5, 20) 
+    depth = random.randint(5, 20)
     # 1) Data
     df = load_data()
     df_clean = clean_data(df)
     # 2) Model + preprocessing
     X, y = create_X_y(df_clean)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state
+    )
     pipeline = create_training_pipeline(
-    model_name=model_name,
-    estimators=n_estimators,
-    max_depth=depth,
-    random_state=random_state,
+        model_name=model_name,
+        estimators=n_estimators,
+        max_depth=depth,
+        random_state=random_state,
     )
     with mlflow.start_run():
         pipeline.fit(X_train, y_train)
@@ -96,9 +105,15 @@ def autolog_mlflow(
         print(f"R2:   {r2:.4f}")
         return pipeline
 
+
 if __name__ == "__main__":
+<<<<<<< HEAD
     if mlflow is None:
         print("mlflow not found in this interpreter. Running training without tracking.")
         train("random_forest")
     else:
         autolog_mlflow()
+=======
+    autolog_mlflow()
+    # train("random_forest")
+>>>>>>> 848d30b (clean a bit the code and add CI to check linter when pushing)
