@@ -119,7 +119,5 @@ def create_X_y(df: pd.DataFrame, predict_value: str = "price") -> tuple[pd.DataF
 
 if __name__ == "__main__":
     df = load_data()
-    df.info()
-    #df_clean = clean_data(df)
-    #df_preprocessed = preprocess_data(df_clean)
-    #X, y = create_X_y(df_preprocessed)
+    df_clean = clean_data(df)
+    X, y = create_X_y(df_clean)
