@@ -6,21 +6,11 @@ from sklearn.metrics import (
     mean_squared_error,
     r2_score,
 )
-<<<<<<< HEAD
-from diamonds.data import load_data
-import random
-
-try:
-    import mlflow
-except ModuleNotFoundError:
-    mlflow = None
-=======
 from sklearn.model_selection import train_test_split
 
 from diamonds.data import clean_data, create_X_y, load_data, preprocess_data
 from diamonds.model import create_model, create_training_pipeline, evaluate_model, train_model
 from diamonds.params import MLFLOW_TRACKING_URI
->>>>>>> 848d30b (clean a bit the code and add CI to check linter when pushing)
 
 
 def train(
@@ -107,13 +97,8 @@ def autolog_mlflow(
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     if mlflow is None:
         print("mlflow not found in this interpreter. Running training without tracking.")
         train("random_forest")
     else:
         autolog_mlflow()
-=======
-    autolog_mlflow()
-    # train("random_forest")
->>>>>>> 848d30b (clean a bit the code and add CI to check linter when pushing)
