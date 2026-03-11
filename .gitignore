@@ -2,7 +2,7 @@
 .venv/
 .python-version
 .ipynb_checkpoints/
-/__pycache__/
+__pycache__/
 
 # Data
 data/
@@ -15,3 +15,6 @@ models/
 # Env
 .env
 .envrc
+
+.mlartifacts/
+.mlflow.db

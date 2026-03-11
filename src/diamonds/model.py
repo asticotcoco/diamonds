@@ -1,6 +1,6 @@
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
+from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.impute import KNNImputer
@@ -14,14 +14,19 @@ from sklearn.metrics import (
     r2_score,
     mean_absolute_percentage_error,
 )
-from diamonds.model import save_model
+from diamonds.registry import save_model
 import pandas as pd
 import loguru
 
 logger = loguru.logger
 
 
-def create_model(model_name: str) -> BaseEstimator:
+def create_model(
+        model_name: str, 
+        estimators: int = 200, 
+        max_depth: int = 10, 
+        random_state: int = 42
+    ) -> BaseEstimator:
     """
     Create an untrained model with the best hyperparameters found during tuning.
 
@@ -39,7 +44,7 @@ def create_model(model_name: str) -> BaseEstimator:
     models = {
         "ridge": Ridge(alpha=1.0),
         "random_forest": RandomForestRegressor(
-            n_estimators=200, max_depth=10, random_state=42
+            n_estimators=estimators, max_depth=max_depth, random_state=random_state
         ),
         "knn": KNeighborsRegressor(n_neighbors=5),
         "linear": LinearRegression(fit_intercept=True),
@@ -51,7 +56,7 @@ def create_model(model_name: str) -> BaseEstimator:
     return models[model_name]
 
 
-def create_preproc(num_cols: list[str], cat_cols: list[str]) -> Pipeline:
+def create_preproc() -> Pipeline:
     """
     Create a preprocessing pipeline.
     """
@@ -69,13 +74,66 @@ def create_preproc(num_cols: list[str], cat_cols: list[str]) -> Pipeline:
         ]
     )
 
-    # combiner les deux
-    preprocessing = ColumnTransformer(
-        [("num", num_pipeline, num_cols), ("cat", cat_pipeline, cat_cols)]
+    preprocessor = ColumnTransformer(
+    [("numeric",num_pipeline, make_column_selector(dtype_include="number"))
+    ,("categorical", cat_pipeline, make_column_selector(dtype_exclude="number"))
+      ]).set_output(transform="pandas")
+    return preprocessor
+
+
+def create_preproc_with_model() -> ColumnTransformer:
+    numeric_features = ["carat", "depth", "table", "x", "y", "z"]
+    categorical_features = ["cut", "color", "clarity"]
+
+    numeric_pipeline = Pipeline([
+        ("num_imp", KNNImputer()),
+        ("scaler", StandardScaler()),
+    ])
+
+    categorical_pipeline = Pipeline([
+        ("cat_imp", SimpleImputer(strategy="most_frequent")),
+        (
+            "ohe",
+            OneHotEncoder(
+                drop="first",
+                handle_unknown="ignore",
+                sparse_output=False,
+            ),
+        ),
+    ])
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("numerical", numeric_pipeline, numeric_features),
+            ("categorical", categorical_pipeline, categorical_features),
+        ],
+        remainder="drop",
+        verbose_feature_names_out=True,
     )
 
-    return preprocessing
+    return preprocessor
 
+
+def create_training_pipeline(
+    model_name: str,
+    estimators: int = 200,
+    max_depth: int = 10,
+    random_state: int = 42,
+) -> Pipeline:
+    preprocessor = create_preproc_with_model()
+    model = create_model(
+        model_name=model_name,
+        estimators=estimators,
+        max_depth=max_depth,
+        random_state=random_state,
+    )
+
+    pipeline = Pipeline([
+        ("preprocessor", preprocessor),
+        ("model", model),
+    ])
+
+    return pipeline
 
 def train_model(model, X_train, y_train):
     """
@@ -90,9 +148,9 @@ def train_model(model, X_train, y_train):
     y_train : pd.Series
         The target variable
     """
-    loguru.info("Training model...")
+    logger.info("Training model...")
     model.fit(X_train, y_train)
-    loguru.info("Model trained. Saving...")
+    logger.info("Model trained. Saving...")
     save_model(model, "model")
 
 
@@ -150,3 +208,4 @@ def predict(model, X: pd.DataFrame) -> pd.Series:
     y_pred = model.predict(X)
 
     return pd.Series(y_pred, index=X.index, name="prediction")
+

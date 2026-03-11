@@ -5,6 +5,9 @@ import loguru
 from diamonds.params import DATA_PATH
 import seaborn as sns
 from diamonds.model import create_preproc
+from diamonds.registry import save_model, load_model
+
+from sklearn.model_selection import train_test_split
 
 logger = loguru.logger
 
@@ -39,14 +42,6 @@ def load_data() -> pd.DataFrame:
 
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
-
-    def keep_not_allow(row):
-        if 0 in row:
-            return False
-        return True
-
-    df_diamonds = df[df.apply(keep_not_allow, axis=1)]
-    df_diamonds[df_diamonds["x"] == 0]
     """
     Clean the diamonds dataset.
 
@@ -60,11 +55,19 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         The cleaned diamonds dataset
     """
+    rows = len(df)
+    def keep_not_allow(rows):
+        if 0 in rows.values:
+            return False
+        return True
 
-    return df_diamonds
+    df_clean = df[df.apply(keep_not_allow, axis=1)]
+    logger.info(f"Cleaned the diamonds dataset: {rows} rows -> {len(df_clean)} rows")
+
+    return df_clean
 
 
-def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
+def preprocess_data(df: pd.DataFrame, train: bool = True) -> pd.DataFrame:
     """
     Preprocess the diamonds dataset.
 
@@ -78,20 +81,22 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         The preprocessed diamonds dataset
     """
-    preprocessor = create_preproc()
-    df_preprocessed = preprocessor.transform(df)
 
+    if train:
+        preprocessor = create_preproc()
+        preprocessor.fit(df)
+        save_model(preprocessor, "preprocessor")
+
+    else:
+        preprocessor = load_model("preprocessor")
+
+    df_preprocessed = preprocessor.transform(df)
+    logger.info(f"Preprocessed the diamonds dataset: {df.shape} -> {df_preprocessed.shape}") 
     return df_preprocessed
 
 
-def create_X_y(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
-    # Split target first so preprocessing columns only reference feature columns.
-    X = df.drop(columns="price")
-    y = df["price"]
-
-    num_cols = X.select_dtypes(include="number").columns.tolist()
-    cat_cols = X.select_dtypes(include=["category", "object"]).columns.tolist()
-    preprocessor = create_preproc(num_cols, cat_cols)
+def create_X_y(df: pd.DataFrame, predict_value: str = "price") -> tuple[pd.DataFrame, pd.Series]:
+    # Split target first so preprocessing columns only reference feature columns
     """
     Create the feature matrix X and target vector y from the diamonds dataset.
 
@@ -105,17 +110,16 @@ def create_X_y(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     (pd.DataFrame, pd.Series)
         The feature matrix X and target vector y
     """
-    X_transform = preprocessor.fit_transform(X)
-    X_transform = pd.DataFrame(
-        X_transform,
-        columns=preprocessor.get_feature_names_out(),
-        index=X.index,
-    )
-    return X_transform, y
+
+    X = df.drop(columns=predict_value)
+    y = df[predict_value]
+
+    return X, y
 
 
 if __name__ == "__main__":
     df = load_data()
-    df_clean = clean_data(df)
-    df_preprocessed = preprocess_data(df_clean)
-    X, y = create_X_y(df_preprocessed)
+    df.info()
+    #df_clean = clean_data(df)
+    #df_preprocessed = preprocess_data(df_clean)
+    #X, y = create_X_y(df_preprocessed)
