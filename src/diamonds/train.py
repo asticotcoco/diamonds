@@ -1,5 +1,5 @@
 import random
-
+import pandas as pd
 import mlflow
 from sklearn.metrics import (
     mean_absolute_error,
@@ -13,7 +13,8 @@ from diamonds.model import create_model, create_training_pipeline, evaluate_mode
 from diamonds.params import MLFLOW_TRACKING_URI
 
 
-def train(
+def train_from_raw_data(
+    raw_data : pd.DataFrame = load_data,
     model_name: str = "baseline",
     test_size: float = 0.2,
     random_state: int = 42,
@@ -21,27 +22,30 @@ def train(
     """
     Simple end‑to‑end pipeline:
 
-    - load and clean the raw data
+    - clean the raw data
     - preprocess it and build X, y
     - split into train / test
     - build the model and preprocessing
     - train, evaluate, and save the trained model
     """
-    # 1) Data
-    df = load_data()
-    df_clean = clean_data(df)
-    # 2) Model + preprocessing
+    n_estimators = random.randint(50, 200)  # Randomly choose n_estimators for demonstration
+    depth = random.randint(5, 20)
+    # 1) Clean data
+    df_clean = clean_data(raw_data)
+    # 2) Preprocess data
     X, y = create_X_y(df_clean)
-    X_train, X_test, y_train, y_test = train_test_split(
+    X_train, _, y_train, _ = train_test_split(
         X, y, test_size=test_size, random_state=random_state
     )
-    X_train_preproc = preprocess_data(X_train, train=True)
-    X_test_preproc = preprocess_data(X_test, train=False)
 
-    model = create_model(model_name)
-    train_model(model, X_train_preproc, y_train)
-    # 3) Evaluation
-    evaluate_model(model, X_test_preproc, y_test)
+    pipeline = create_training_pipeline(
+        model_name=model_name,
+        estimators=n_estimators,
+        max_depth=depth,
+        random_state=random_state,
+    )
+    # 3) Train model
+    train_model(pipeline, X_train, y_train)
 
 
 def autolog_mlflow(
@@ -99,6 +103,6 @@ def autolog_mlflow(
 if __name__ == "__main__":
     if mlflow is None:
         print("mlflow not found in this interpreter. Running training without tracking.")
-        train("random_forest")
+        train_from_raw_data(raw_data=load_data(), model_name="random_forest")
     else:
         autolog_mlflow()

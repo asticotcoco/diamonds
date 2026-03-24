@@ -9,7 +9,6 @@ from diamonds.params import MODEL_PATH
 
 logger = loguru.logger
 
-
 def save_model(model: BaseEstimator, name: str, model_registry: str = "local") -> None:
     """Save a trained model to disk and return its path."""
     model_path = os.path.join(MODEL_PATH, f"{name}.pkl")
@@ -30,6 +29,6 @@ def load_model(name: str, model_registry: str = "local") -> BaseEstimator:
     else:
         with open(model_path, "rb") as f:
             model = pickle.load(f)
-        logger.info(f"Model loaded from disk with name: {name}")
+        logger.info(f"Model loaded from local with name: {name}")
 
     return model
